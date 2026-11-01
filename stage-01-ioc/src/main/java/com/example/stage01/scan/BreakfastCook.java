@@ -4,13 +4,15 @@ import org.springframework.stereotype.Service;
 
 import java.time.Clock;
 import java.time.LocalTime;
-import java.time.temporal.ChronoUnit;
+import java.time.format.DateTimeFormatter;
 
 /**
  * No {@code @Autowired} is needed: a class with a single constructor uses it for injection.
  */
 @Service
 public class BreakfastCook {
+
+    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     private final Pantry pantry;
     private final Stove stove;
@@ -23,7 +25,7 @@ public class BreakfastCook {
     }
 
     public String cook() {
-        LocalTime now = LocalTime.now(clock).truncatedTo(ChronoUnit.SECONDS);
+        String now = LocalTime.now(clock).format(TIME_FORMAT);
         return stove.heat(pantry.openCan()) + ", served at " + now;
     }
 }

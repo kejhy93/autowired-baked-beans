@@ -8,7 +8,9 @@ import java.time.Clock;
 
 /**
  * Shows the two differences that matter most between a bare BeanFactory and an
- * ApplicationContext: when singletons are created, and whether annotations are processed.
+ * AnnotationConfigApplicationContext: when singletons are created, and whether annotations
+ * are processed. Eager creation comes from being an ApplicationContext, while the annotation
+ * support comes from the processors that this particular context registers.
  */
 public class BeanFactoryVsContextApp {
 
@@ -31,6 +33,7 @@ public class BeanFactoryVsContextApp {
 
     static DefaultListableBeanFactory bareFactory() {
         DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
+        // Available on purpose, so an unwired Probe can only mean @Autowired was ignored
         factory.registerSingleton("clock", Clock.systemUTC());
         factory.registerBeanDefinition("probe", new RootBeanDefinition(Probe.class));
         return factory;

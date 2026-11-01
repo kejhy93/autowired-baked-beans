@@ -5,6 +5,9 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 
 import java.util.Arrays;
 
+/**
+ * Runs variant 2, which is wired by {@link KitchenConfig}.
+ */
 public class JavaConfigApp {
 
     public static void main(String[] args) {

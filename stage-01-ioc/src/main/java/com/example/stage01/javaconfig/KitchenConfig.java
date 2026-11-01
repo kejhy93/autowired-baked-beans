@@ -11,7 +11,8 @@ import java.time.Clock;
 /**
  * Variant 2: explicit {@code @Bean} methods. The classes stay free of Spring, so this
  * style also works for classes you can't annotate, such as {@link Clock}.
- * Method parameters are the dependencies, and Spring resolves them by type.
+ * Method parameters are the dependencies. Spring resolves them by type, and if several beans
+ * match, it can fall back to the parameter name when compiled with {@code -parameters}.
  */
 @Configuration
 public class KitchenConfig {
@@ -28,7 +29,7 @@ public class KitchenConfig {
 
     @Bean
     public Clock clock() {
-        return Clock.systemUTC();
+        return Clock.systemDefaultZone();
     }
 
     @Bean

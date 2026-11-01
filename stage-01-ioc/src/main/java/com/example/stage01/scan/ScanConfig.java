@@ -17,6 +17,6 @@ public class ScanConfig {
 
     @Bean
     public Clock clock() {
-        return Clock.systemUTC();
+        return Clock.systemDefaultZone();
     }
 }

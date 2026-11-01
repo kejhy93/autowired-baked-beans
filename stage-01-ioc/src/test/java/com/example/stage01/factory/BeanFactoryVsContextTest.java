@@ -17,7 +17,7 @@ class BeanFactoryVsContextTest {
     }
 
     @Test
-    void contextIsEagerAndHonoursAutowired() {
+    void annotationConfigContextIsEagerAndHonoursAutowired() {
         try (var context = BeanFactoryVsContextApp.refreshedContext()) {
             assertTrue(context.getBeanFactory().containsSingleton("probe"));
             assertTrue(context.getBean(Probe.class).isWired());

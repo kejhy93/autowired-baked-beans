@@ -6,7 +6,8 @@ import java.time.Clock;
 
 /**
  * Reports when it is created and whether {@code @Autowired} was honoured.
- * Uses setter injection because a bare BeanFactory wouldn't resolve a constructor argument.
+ * Uses setter injection because, by default, a bare BeanFactory can't supply constructor
+ * arguments: creating the bean would fail, and there would be nothing left to report.
  */
 public class Probe {
 
