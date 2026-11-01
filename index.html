@@ -1,0 +1,835 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stage 1: IoC and your first context · Autowired Baked Beans</title>
+<meta name="description" content="What the Spring container does for you: one small breakfast app wired by hand, with @Bean methods, and with component scanning.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cellipse cx='16' cy='16' rx='14' ry='10' transform='rotate(-25 16 16)' fill='%23b3341c'/%3E%3C/svg%3E">
+<style>
+:root {
+  color-scheme: light dark;
+  --paper: #fbf6ec;
+  --panel: #fffdf8;
+  --ink: #2a1f17;
+  --muted: #6b5a4b;
+  --line: #e2d5bf;
+  --sauce: #ad2f18;
+  --sauce-soft: #f8e3d8;
+  --bean: #7d4a22;
+  --herb: #38692f;
+  --herb-soft: #e5efd9;
+  --code-bg: #f4ecdd;
+  --c-keyword: #a12a14;
+  --c-type: #7d4a22;
+  --c-annotation: #38692f;
+  --c-string: #1f6275;
+  --c-comment: #7a6a5a;
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #191411;
+    --panel: #221b16;
+    --ink: #f2e8da;
+    --muted: #b6a593;
+    --line: #3d3128;
+    --sauce: #f2815f;
+    --sauce-soft: #41231a;
+    --bean: #dba877;
+    --herb: #a3cf8d;
+    --herb-soft: #26331f;
+    --code-bg: #15100d;
+    --c-keyword: #f2815f;
+    --c-type: #e5b98a;
+    --c-annotation: #a3cf8d;
+    --c-string: #82c8dc;
+    --c-comment: #a08f7e;
+  }
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 24px; -webkit-text-size-adjust: 100%; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font: 17px/1.62 var(--sans);
+}
+a { color: var(--sauce); text-underline-offset: 2px; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 2px solid var(--sauce); outline-offset: 2px; border-radius: 3px; }
+code { font: .88em var(--mono); background: var(--code-bg); padding: .1em .3em; border-radius: 4px; overflow-wrap: anywhere; }
+h1, h2, h3 { font-family: var(--serif); line-height: 1.18; font-weight: 700; text-wrap: balance; }
+h2 { font-size: 1.85rem; margin: 0 0 .5em; }
+h3 { font-size: 1.2rem; margin: 1.6em 0 .4em; }
+h2 code { font-size: .78em; font-weight: 600; background: none; padding: 0; }
+p { margin: 0 0 1em; }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr); max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+main { min-width: 0; max-width: 860px; }
+section { padding: 44px 0 8px; }
+.prose { max-width: 68ch; }
+.muted { color: var(--muted); }
+.small { font-size: .9rem; }
+
+/* Header */
+.hero { border-bottom: 1px solid var(--line); padding: 28px 0 34px; }
+.eyebrow { font: 600 .82rem var(--sans); letter-spacing: .02em; color: var(--muted); margin: 0 0 18px; display: flex; flex-wrap: wrap; gap: 4px 12px; }
+.eyebrow a { color: inherit; }
+h1 { font-size: clamp(2.2rem, 7vw, 3.5rem); margin: 0 0 .3em; letter-spacing: -.012em; }
+.lede { font: 1.3rem/1.42 var(--serif); max-width: 34em; margin: 0 0 20px; }
+.facts { display: flex; flex-wrap: wrap; gap: 6px 22px; margin: 0; padding: 0; list-style: none; font-size: .9rem; color: var(--muted); }
+.facts strong { color: var(--ink); font-weight: 600; }
+
+/* Contents */
+nav.toc { display: none; }
+@media (min-width: 1120px) {
+  .layout { grid-template-columns: 186px minmax(0, 1fr); column-gap: 52px; }
+  nav.toc { display: block; position: sticky; top: 24px; align-self: start; padding-top: 42px; font-size: .88rem; }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--line); }
+  nav.toc a { display: block; padding: 5px 0 5px 13px; margin-left: -1px; border-left: 2px solid transparent; color: var(--muted); text-decoration: none; line-height: 1.3; }
+  nav.toc a:hover { color: var(--ink); }
+  nav.toc a[aria-current="true"] { color: var(--sauce); border-left-color: var(--sauce); font-weight: 600; }
+}
+
+/* Code and terminal output */
+pre { margin: 0; font: .82rem/1.55 var(--mono); overflow-x: auto; -webkit-overflow-scrolling: touch; tab-size: 4; }
+.code, .term { background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; padding: 13px 15px; }
+.term { margin: 0 0 1em; }
+.term mark { background: var(--sauce-soft); color: var(--sauce); font-weight: 700; padding: 0 2px; border-radius: 2px; }
+.term .good { color: var(--herb); font-weight: 700; }
+.term .dim { color: var(--c-comment); }
+.t-keyword { color: var(--c-keyword); }
+.t-type { color: var(--c-type); }
+.t-annotation { color: var(--c-annotation); font-weight: 600; }
+.t-string { color: var(--c-string); }
+.t-comment { color: var(--c-comment); font-style: italic; }
+.file-label { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; font: .78rem var(--mono); color: var(--muted); margin: 16px 0 5px; overflow-wrap: anywhere; }
+
+/* Tables */
+.table-wrap { overflow-x: auto; margin: 0 0 1.2em; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+table { border-collapse: collapse; width: 100%; font-size: .92rem; line-height: 1.45; }
+th, td { text-align: left; vertical-align: top; padding: 9px 12px; border-bottom: 1px solid var(--line); }
+tr:last-child td { border-bottom: 0; }
+thead th { font-weight: 600; color: var(--muted); font-size: .83rem; }
+tbody th { font-weight: 600; }
+.yes { color: var(--herb); font-weight: 600; }
+.no { color: var(--sauce); font-weight: 600; }
+td code, th code { white-space: nowrap; overflow-wrap: normal; }
+
+/* Terms */
+dl.terms { margin: 0; display: grid; gap: 0; }
+dl.terms > div { padding: 12px 0; border-top: 1px solid var(--line); }
+dl.terms > div:last-child { border-bottom: 1px solid var(--line); }
+dt { font: 700 1.05rem var(--serif); margin-bottom: 2px; }
+dd { margin: 0; }
+@media (min-width: 640px) {
+  dl.terms > div { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 18px; }
+}
+
+/* Tabs */
+.tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; }
+.tabs button, .steps button, .btn {
+  font: 600 .9rem var(--sans); color: var(--ink); background: var(--panel);
+  border: 1px solid var(--line); border-radius: 7px; padding: 8px 13px; cursor: pointer; min-height: 40px;
+}
+.tabs button:hover, .steps button:hover, .btn:hover:not(:disabled) { border-color: var(--sauce); }
+.tabs button[aria-selected="true"], .steps button[aria-current="step"] { background: var(--sauce); border-color: var(--sauce); color: var(--paper); }
+.btn:disabled { opacity: .45; cursor: default; }
+.who { font: 1.12rem/1.4 var(--serif); margin: 0 0 8px; }
+
+/* refresh() stepper */
+.stepper { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+.steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-bottom: 14px; }
+.steps button { padding: 8px 4px; font-size: .84rem; }
+.step-title { font: 700 1.14rem var(--serif); margin: 0 0 3px; }
+.step-text { margin: 0 0 14px; min-height: 4.8em; }
+.state { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+@media (min-width: 620px) { .state { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.state h4 { font: 600 .84rem var(--sans); color: var(--muted); margin: 0 0 7px; }
+.state ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; min-height: 2.2em; }
+.state li { font: .79rem/1.3 var(--mono); padding: 5px 8px; border-radius: 5px; border: 1px solid var(--line); background: var(--paper); overflow-wrap: anywhere; }
+.state li.infra { color: var(--muted); }
+.state li.mine { font-weight: 700; }
+.state li.new { border-color: var(--sauce); background: var(--sauce-soft); }
+.state li.empty { border-style: dashed; background: none; color: var(--muted); font-family: var(--sans); }
+.stepper-foot { display: flex; justify-content: space-between; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+@media (prefers-reduced-motion: no-preference) { .state li.new { animation: rise .24s ease-out; } }
+@keyframes rise { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+/* Factory comparison */
+.pair { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 14px; }
+@media (min-width: 720px) { .pair { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Reveal cards */
+.progress { position: sticky; top: 0; z-index: 2; background: var(--paper); padding: 9px 0; display: flex; align-items: center; gap: 12px; font-size: .88rem; color: var(--muted); }
+.bar { flex: 1; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: var(--sauce); transition: width .2s; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 9px; padding: 13px 15px; margin-bottom: 10px; }
+.card.done { border-color: var(--herb); }
+.card-head { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 11px; align-items: start; }
+.card-head input { width: 19px; height: 19px; margin: 4px 0 0; accent-color: var(--herb); cursor: pointer; }
+.card-head label { cursor: pointer; }
+.card-head p { margin: 0; }
+.card-head b { font-family: var(--serif); }
+details { margin: 9px 0 0 30px; }
+summary { cursor: pointer; font-weight: 600; font-size: .9rem; color: var(--sauce); padding: 3px 0; }
+details > div { padding-top: 7px; font-size: .95rem; }
+details .term { margin: 6px 0 10px; font-size: .95em; }
+details p:last-child { margin-bottom: 0; }
+@media (max-width: 480px) { details { margin-left: 0; } }
+
+/* Source browser */
+.browser { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+@media (min-width: 720px) { .browser { grid-template-columns: 208px minmax(0, 1fr); } }
+.files { font-size: .82rem; max-height: 220px; overflow-y: auto; border: 1px solid var(--line); border-radius: 8px; padding: 6px; background: var(--panel); }
+@media (min-width: 720px) { .files { max-height: 560px; } }
+.files h4 { font: 600 .74rem var(--mono); color: var(--muted); margin: 9px 7px 3px; }
+.files button { display: block; width: 100%; text-align: left; border: 0; background: none; color: var(--ink); font: .8rem var(--mono); padding: 6px 7px; border-radius: 5px; cursor: pointer; overflow-wrap: anywhere; }
+.files button:hover { background: var(--code-bg); }
+.files button[aria-current="true"] { background: var(--sauce); color: var(--paper); }
+.viewer { min-width: 0; }
+.viewer .file-label { margin-top: 0; }
+.viewer pre { max-height: 560px; overflow: auto; }
+
+footer { margin-top: 56px; padding: 22px 0 40px; border-top: 1px solid var(--line); color: var(--muted); font-size: .88rem; }
+ul.tight { padding-left: 1.2em; margin: 0 0 1em; }
+ul.tight li { margin-bottom: .4em; }
+</style>
+</head>
+<body>
+<div class="layout">
+<nav class="toc" aria-label="Contents">
+  <ol>
+    <li><a href="#app">The app</a></li>
+    <li><a href="#wiring">Three wirings</a></li>
+    <li><a href="#terms">Key terms</a></li>
+    <li><a href="#refresh">Inside startup</a></li>
+    <li><a href="#declaring">Declaring beans</a></li>
+    <li><a href="#containers">Factory vs. context</a></li>
+    <li><a href="#design">Why it looks like this</a></li>
+    <li><a href="#tests">The tests</a></li>
+    <li><a href="#experiments">Experiments</a></li>
+    <li><a href="#explain">Explain it</a></li>
+    <li><a href="#source">Source code</a></li>
+    <li><a href="#run">Run it</a></li>
+  </ol>
+</nav>
+<main>
+<header class="hero">
+  <p class="eyebrow">
+    <a href="https://github.com/kejhy93/autowired-baked-beans">autowired-baked-beans</a>
+    <a href="https://github.com/kejhy93/autowired-baked-beans/blob/main/LEARNING_PLAN.md">Learning plan</a>
+    <a href="https://github.com/kejhy93/autowired-baked-beans/issues/2">Issue #2</a>
+  </p>
+  <h1>Stage 1: IoC and your first context</h1>
+  <p class="lede">Understand what the Spring container does for you by wiring the same small app by hand, and then with Spring.</p>
+  <ul class="facts">
+    <li><strong>Level</strong> Basics, week 1</li>
+    <li><strong>Module</strong> <code>stage-01-ioc</code></li>
+    <li><strong>Stack</strong> Spring Framework 7.0.10, JDK 25</li>
+    <li><strong>Tests</strong> 7 passing</li>
+  </ul>
+</header>
+<noscript><p class="small muted" style="margin-top:16px">The code views and the startup walkthrough need JavaScript. The <a href="https://github.com/kejhy93/autowired-baked-beans/tree/main/stage-01-ioc">module on GitHub</a> has the same source.</p></noscript>
+
+<section id="app">
+  <h2>The app</h2>
+  <div class="prose">
+    <p>Every later stage assumes one mental model: <strong>the container reads bean definitions, creates the objects, and connects them.</strong> Once you've wired an app by hand, you can see exactly which job Spring takes over.</p>
+    <p><code>BreakfastCook</code> takes food from a <code>Pantry</code>, heats it on a <code>Stove</code>, and uses a <code>Clock</code> to report when it was served.</p>
+  </div>
+<pre class="term">BreakfastCook
+├── Pantry
+├── Stove
+└── Clock (from the JDK)
+
+<span class="dim">$ run any variant</span>
+hot baked beans, served at 11:42:33</pre>
+  <p class="prose">Every variant builds these same four objects and prints the same kind of line. Only the code that creates and connects them changes.</p>
+</section>
+
+<section id="wiring">
+  <h2>One app, three wirings</h2>
+  <div class="tabs" role="tablist" aria-label="Wiring variant" data-tabs>
+    <button role="tab" id="tab-manual" aria-controls="panel-manual" aria-selected="true">By hand</button>
+    <button role="tab" id="tab-javaconfig" aria-controls="panel-javaconfig" aria-selected="false" tabindex="-1">@Bean methods</button>
+    <button role="tab" id="tab-scan" aria-controls="panel-scan" aria-selected="false" tabindex="-1">Component scanning</button>
+  </div>
+  <div role="tabpanel" id="panel-manual" aria-labelledby="tab-manual">
+    <p class="who">Your <code>main</code> method decides, using <code>new</code>.</p>
+    <p class="prose"><code>main</code> does all the work in order. The dependencies must be created first, because the constructor call needs them. There is no container, so nothing here is a bean.</p>
+    <div data-file="stage-01-ioc/src/main/java/com/example/stage01/manual/ManualWiringApp.java"></div>
+  </div>
+  <div role="tabpanel" id="panel-javaconfig" aria-labelledby="tab-javaconfig" hidden>
+    <p class="who">Your config class decides, and Spring calls it.</p>
+    <p class="prose">The classes in <code>plain</code> never mention Spring. All the Spring-specific wiring lives here, which is also why this style works for <code>Clock</code>, a class you can't annotate.</p>
+    <div data-file="stage-01-ioc/src/main/java/com/example/stage01/javaconfig/KitchenConfig.java"></div>
+    <div data-file="stage-01-ioc/src/main/java/com/example/stage01/javaconfig/JavaConfigApp.java"></div>
+  </div>
+  <div role="tabpanel" id="panel-scan" aria-labelledby="tab-scan" hidden>
+    <p class="who">Spring decides, from annotations on the classes.</p>
+    <p class="prose">You no longer write a method that calls the constructor, so Spring picks one itself. <code>scan.BreakfastCook</code> has only one constructor, so Spring uses it and resolves its parameters by type. These classes are duplicated on purpose so you can compare them with <code>plain</code>.</p>
+    <div data-file="stage-01-ioc/src/main/java/com/example/stage01/scan/ScanConfig.java"></div>
+    <div data-file="stage-01-ioc/src/main/java/com/example/stage01/scan/BreakfastCook.java"></div>
+  </div>
+  <h3>What changes between them</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th></th><th>By hand</th><th><code>@Bean</code> methods</th><th>Scanning</th></tr></thead>
+    <tbody>
+      <tr><th>Who calls <code>new</code></th><td>You, in <code>main</code></td><td>You, in a method Spring calls</td><td>Spring</td></tr>
+      <tr><th>Who orders creation</th><td>You</td><td>Spring</td><td>Spring</td></tr>
+      <tr><th>Spring in your classes</th><td>None</td><td>None, only in the config</td><td>Annotations on each class</td></tr>
+      <tr><th>Are they beans?</th><td>No</td><td>Yes</td><td>Yes</td></tr>
+      <tr><th>Works for <code>Clock</code></th><td>Yes</td><td>Yes</td><td>No, it still needs a <code>@Bean</code> method</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="terms">
+  <h2>Key terms</h2>
+  <dl class="terms">
+    <div><dt>Inversion of control</dt><dd>Something other than your business code controls a job that your code would otherwise do itself. In this stage, that job is creating objects and connecting them.</dd></div>
+    <div><dt>Dependency injection</dt><dd>One way to apply IoC. A class declares what it needs, usually as constructor parameters, and whoever creates it supplies those things. <code>plain.BreakfastCook</code> does this without importing anything from Spring.</dd></div>
+    <div><dt>Container</dt><dd>The Spring object that creates and manages your objects. <code>BeanFactory</code> is its basic interface, and <code>ApplicationContext</code> builds on it.</dd></div>
+    <div><dt>Bean</dt><dd>An object that the container creates, configures, and manages. A <code>Pantry</code> you create with <code>new</code> in <code>main</code> is not a bean, even though the class is the same.</dd></div>
+    <div><dt>Bean definition</dt><dd>The container's recipe for a bean, such as its class, how to create it, and what it depends on. The container collects definitions first and creates objects later.</dd></div>
+  </dl>
+</section>
+
+<section id="refresh">
+  <h2>Inside startup</h2>
+  <p class="prose"><code>new AnnotationConfigApplicationContext(Config.class)</code> does all of this before it returns, so <code>getBean</code> only retrieves objects that already exist. Step through it and watch the recipes appear long before the objects do.</p>
+  <div class="tabs" role="group" aria-label="Configuration to start" id="refresh-variant">
+    <button type="button" data-variant="javaconfig" aria-pressed="true">KitchenConfig</button>
+    <button type="button" data-variant="scan" aria-pressed="false">ScanConfig</button>
+  </div>
+  <div class="stepper">
+    <div class="steps" id="refresh-steps"></div>
+    <div aria-live="polite">
+      <p class="step-title" id="step-title"></p>
+      <p class="step-text" id="step-text"></p>
+    </div>
+    <div class="state">
+      <div><h4>Bean definitions (the recipes)</h4><ol id="state-defs"></ol></div>
+      <div><h4>Objects that exist, in creation order</h4><ol id="state-objs"></ol></div>
+    </div>
+    <div class="stepper-foot">
+      <button type="button" class="btn" id="step-prev">Previous</button>
+      <button type="button" class="btn" id="step-next">Next step</button>
+    </div>
+  </div>
+  <p class="small muted" style="margin-top:10px">The order comes from <code>getBeanDefinitionNames()</code> and a logging <code>BeanPostProcessor</code>, run against this module.</p>
+  <h3>Reading the output</h3>
+  <p class="prose">The first four names printed by <code>JavaConfigApp</code> and <code>ScanApp</code> belong to Spring. <code>kitchenConfig</code> and <code>scanConfig</code> are there because a configuration class is a bean too: Spring needs an instance to call its <code>@Bean</code> methods.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Bean name ends in</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>internalConfigurationAnnotationProcessor</code></td><td>Reads <code>@Configuration</code>, <code>@Bean</code>, and <code>@ComponentScan</code></td></tr>
+      <tr><td><code>internalAutowiredAnnotationProcessor</code></td><td>Performs <code>@Autowired</code> injection on new beans</td></tr>
+      <tr><td><code>internalEventListenerProcessor</code></td><td>Finds <code>@EventListener</code> methods</td></tr>
+      <tr><td><code>internalEventListenerFactory</code></td><td>Creates the listeners for those methods</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="declaring">
+  <h2>Declaring beans</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Annotation</th><th>What it says</th></tr></thead>
+    <tbody>
+      <tr><td><code>@Component</code></td><td>Scanning should register this class as a bean. Here: <code>scan.Stove</code>.</td></tr>
+      <tr><td><code>@Service</code></td><td>A <code>@Component</code> that names a business role. It adds no behaviour of its own. Here: <code>scan.BreakfastCook</code>.</td></tr>
+      <tr><td><code>@Repository</code></td><td>A <code>@Component</code> for data access, and it marks the class for exception translation when that processor is registered. Here: <code>scan.Pantry</code>.</td></tr>
+      <tr><td><code>@Controller</code></td><td>A <code>@Component</code> for the web layer. Spring MVC looks for it. This module doesn't use it.</td></tr>
+      <tr><td><code>@ComponentScan</code></td><td>Search for those classes. With no arguments, it covers the config class's package and its subpackages.</td></tr>
+      <tr><td><code>@Configuration</code></td><td>Marks a class that declares beans.</td></tr>
+      <tr><td><code>@Bean</code></td><td>The method's return value is a bean, and its parameters are the dependencies.</td></tr>
+    </tbody>
+  </table></div>
+  <h3>Default bean names</h3>
+  <ul class="tight prose">
+    <li><strong>Scanned class:</strong> the simple class name with a lowercase first letter. <code>BreakfastCook</code> becomes <code>breakfastCook</code>.</li>
+    <li><strong><code>@Bean</code> method:</strong> the method name. <code>clock()</code> becomes <code>clock</code>.</li>
+  </ul>
+  <h3>Looking beans up</h3>
+<pre class="term">context.getBean(BreakfastCook.class);                     <span class="dim">// by type, as the apps do</span>
+context.getBean("breakfastCook", BreakfastCook.class);    <span class="dim">// by name, with a checked type</span></pre>
+  <p class="prose">In this module, <code>getBean</code> appears only in <code>main</code> methods and tests. A <code>main</code> method needs a starting point, because nothing injects into it. Everywhere else, classes declare their dependencies and receive them, which keeps them testable and free of Spring lookups. The by-name form isn't used in the module, so try it yourself.</p>
+</section>
+
+<section id="containers">
+  <h2><code>BeanFactory</code> vs. <code>ApplicationContext</code></h2>
+  <p class="prose"><code>BeanFactoryVsContextApp</code> registers the same <code>Probe</code> class in both containers. <code>Probe</code> prints a line from its constructor, and <code>isWired()</code> reports whether its <code>@Autowired</code> setter was called. Look at where the constructor line appears in each half.</p>
+  <div class="pair">
+<pre class="term">BeanFactory: registering the definition
+BeanFactory: asking for the bean
+<mark>  -&gt; Probe constructor called</mark>
+BeanFactory: @Autowired honoured? <mark>false</mark></pre>
+<pre class="term">ApplicationContext: refreshing
+<mark>  -&gt; Probe constructor called</mark>
+ApplicationContext: asking for the bean
+ApplicationContext: @Autowired honoured? <span class="good">true</span></pre>
+  </div>
+  <ul class="tight prose">
+    <li><strong>The bare factory is lazy.</strong> It creates <code>Probe</code> only when <code>getBean</code> asks for it.</li>
+    <li><strong>The context is eager.</strong> It creates <code>Probe</code> during <code>refresh()</code>. A broken configuration therefore fails at startup, not later when a bean is first requested.</li>
+    <li><strong>Annotations don't do anything on their own.</strong> <code>@Autowired</code> is only metadata, and a processor has to act on it. <code>AnnotationConfigApplicationContext</code> registers that processor, but a bare <code>DefaultListableBeanFactory</code> doesn't. The factory does have a <code>clock</code> available, so an unwired <code>Probe</code> can only mean that the annotation was ignored.</li>
+  </ul>
+  <h3>Two separate differences</h3>
+  <p class="prose">Eager creation comes from being an <code>ApplicationContext</code>. Annotation support comes from the processors a particular context registers. Experiments 9 and 10 pull them apart:</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Container</th><th>Singleton created</th><th><code>@Autowired</code></th></tr></thead>
+    <tbody>
+      <tr><td><code>DefaultListableBeanFactory</code></td><td>On first <code>getBean</code></td><td class="no">Ignored</td></tr>
+      <tr><td>…plus <code>preInstantiateSingletons()</code></td><td>When you call it</td><td class="no">Ignored</td></tr>
+      <tr><td>…plus the processor, added by hand</td><td>When you call it</td><td class="yes">Honoured</td></tr>
+      <tr><td><code>GenericApplicationContext</code></td><td>During <code>refresh()</code></td><td class="no">Ignored</td></tr>
+      <tr><td><code>AnnotationConfigApplicationContext</code></td><td>During <code>refresh()</code></td><td class="yes">Honoured</td></tr>
+    </tbody>
+  </table></div>
+  <p class="prose"><code>Probe</code> uses setter injection because, by default, a bare factory can't supply constructor arguments. With constructor injection, the demo would fail before it could report anything.</p>
+</section>
+
+<section id="design">
+  <h2>Why the code looks like this</h2>
+  <ul class="tight prose">
+    <li><strong>The context is opened with try-with-resources.</strong> Closing it shuts down the container and destroys its singletons. Stage 4 covers what your beans can do at that moment.</li>
+    <li><strong>The clock is injected.</strong> A class that called <code>LocalTime.now()</code> directly would print a different time on every run. Injecting a <code>Clock</code> lets a test supply a fixed time and check the exact output.</li>
+    <li><strong><code>@Autowired</code> is absent from <code>scan.BreakfastCook</code>.</strong> A class with a single constructor uses it for injection, so there is nothing to choose between.</li>
+  </ul>
+</section>
+
+<section id="tests">
+  <h2>What the tests show</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Test</th><th>What it proves</th></tr></thead>
+    <tbody>
+      <tr><td><code>BreakfastCookTest</code></td><td>Plain DI needs no container: the test calls the constructor and passes in a fixed clock</td></tr>
+      <tr><td><code>javaConfigWiresTheCook</code></td><td><code>KitchenConfig</code> produces a working <code>BreakfastCook</code></td></tr>
+      <tr><td><code>componentScanWiresTheCook</code></td><td><code>ScanConfig</code> produces a working <code>scan.BreakfastCook</code></td></tr>
+      <tr><td><code>beansAreSingletonsByDefault</code></td><td>Two <code>getBean</code> calls return the same object</td></tr>
+      <tr><td><code>scanOnlyCoversTheConfigPackage</code></td><td><code>KitchenConfig</code> is annotated, but it isn't found because it's outside the <code>scan</code> package</td></tr>
+      <tr><td><code>bareFactoryIsLazyAndIgnoresAutowired</code></td><td>The factory has only a definition until asked, then skips the <code>@Autowired</code> setter</td></tr>
+      <tr><td><code>annotationConfigContextIsEagerAndHonoursAutowired</code></td><td>The singleton exists when <code>refresh()</code> returns, and its setter was called</td></tr>
+    </tbody>
+  </table></div>
+  <p class="prose">The first two wiring tests need a predictable time, so <code>contextAtEightOClock</code> adds a <code>BeanPostProcessor</code> that swaps each <code>Clock</code> bean for a fixed one as it's created. This is an early look at the container's extension points, which Stage 6 covers. The config must still define a clock, so these tests fail if it stops doing so.</p>
+</section>
+
+<section id="experiments">
+  <h2>Experiments</h2>
+  <p class="prose">Predict the result of each one before you run it, then open the answer. Every answer below comes from applying that change to this module and running it. Your ticks stay in this browser.</p>
+  <div class="progress" data-progress="exp"><span data-count></span><div class="bar"><i></i></div></div>
+
+  <article class="card" data-check="exp-1">
+    <div class="card-head"><input type="checkbox" id="exp-1"><label for="exp-1"><p><b>1.</b> In <code>scan/Stove.java</code>, remove <code>@Component</code>. Read the whole exception message.</p></label></div>
+    <details><summary>What happened</summary><div>
+<pre class="term">UnsatisfiedDependencyException: Error creating bean with name 'breakfastCook'
+... Unsatisfied dependency expressed through constructor parameter 1:
+No qualifying bean of type 'com.example.stage01.scan.Stove' available:
+expected at least 1 bean which qualifies as autowire candidate.</pre>
+      <p>The context fails during <code>refresh()</code>, and the message names the bean, the zero-based parameter, and the missing type. Two tests error: <code>componentScanWiresTheCook</code> and <code>scanOnlyCoversTheConfigPackage</code>, because both start this config.</p>
+    </div></details>
+  </article>
+
+  <article class="card" data-check="exp-2">
+    <div class="card-head"><input type="checkbox" id="exp-2"><label for="exp-2"><p><b>2.</b> In <code>ScanConfig</code>, change the scan to <code>@ComponentScan("com.example.stage01.plain")</code>.</p></label></div>
+    <details><summary>What happened</summary><div>
+      <p>Finding nothing isn't an error, so the context starts normally. <code>plain</code> has no annotated classes, which leaves only <code>scanConfig</code>, <code>clock</code>, and Spring's four beans. The failure comes later, at the lookup:</p>
+<pre class="term">NoSuchBeanDefinitionException: No qualifying bean of type
+'com.example.stage01.scan.BreakfastCook' available</pre>
+      <p>Compare this with experiment 1, which fails during startup. One test errors: <code>componentScanWiresTheCook</code>.</p>
+    </div></details>
+  </article>
+
+  <article class="card" data-check="exp-3">
+    <div class="card-head"><input type="checkbox" id="exp-3"><label for="exp-3"><p><b>3.</b> In <code>KitchenConfig</code>, rename <code>pantry()</code> to <code>larder()</code>. Does injection still work? What is the bean called now?</p></label></div>
+    <details><summary>What happened</summary><div>
+      <p>Injection still works and all 7 tests pass, because <code>breakfastCook(Pantry pantry, ...)</code> resolves by type. The bean is now called <code>larder</code>, because a <code>@Bean</code> method's name becomes the bean name.</p>
+    </div></details>
+  </article>
+
+  <article class="card" data-check="exp-4">
+    <div class="card-head"><input type="checkbox" id="exp-4"><label for="exp-4"><p><b>4.</b> In <code>KitchenConfig</code>, add a second <code>Stove</code> <code>@Bean</code> method called <code>backupStove</code>. Then run <code>mvn -q clean test -Dmaven.compiler.parameters=true</code>. Why does the same code work now? (Hint: look at the parameter names of <code>breakfastCook(...)</code>.)</p></label></div>
+    <details><summary>What happened</summary><div>
+<pre class="term">No qualifying bean of type 'com.example.stage01.plain.Stove' available:
+expected single matching bean but found 2: stove,backupStove</pre>
+      <p>Without the flag, two tests error. With <code>-parameters</code>, the class files keep parameter names, so Spring can match the parameter <code>stove</code> to the bean named <code>stove</code>, and all 7 tests pass. Relying on a compiler flag is fragile, and Stage 2 covers the proper fixes.</p>
+    </div></details>
+  </article>
+
+  <article class="card" data-check="exp-5">
+    <div class="card-head"><input type="checkbox" id="exp-5"><label for="exp-5"><p><b>5.</b> In <code>scan/BreakfastCook.java</code>, add a second constructor that takes only <code>Pantry</code> and <code>Stove</code>. What does Spring need from you now? Then replace it with a no-argument constructor that calls <code>this(new Pantry(), new Stove(), Clock.systemUTC())</code>. Why does <code>componentScanWiresTheCook</code> fail now, and who chose the dependencies? Finally, add a second constructor to <code>plain/BreakfastCook.java</code>. Why does nothing change?</p></label></div>
+    <details><summary>What happened</summary><div>
+      <p><strong>Two constructors:</strong> startup fails with <code>Failed to instantiate ... No default constructor found</code>. With more than one constructor, Spring won't guess, so it looks for a no-argument one. Putting <code>@Autowired</code> on the three-argument constructor fixes it, and all 7 tests pass.</p>
+      <p><strong>No-argument constructor:</strong> the app runs, but the test fails.</p>
+<pre class="term">expected: &lt;hot baked beans, served at 08:00:00&gt;
+ but was: &lt;hot baked beans, served at 10:43:48&gt;</pre>
+      <p>Spring takes the no-argument constructor, so the class chose its own dependencies with <code>new</code>. The test's fixed clock never reaches the cook. The <code>pantry</code>, <code>stove</code>, and <code>clock</code> beans still exist, but the cook doesn't use them. This is what IoC removes.</p>
+      <p><strong>In <code>plain</code>:</strong> all 7 tests pass, because your <code>@Bean</code> method calls the constructor explicitly and Spring has nothing to pick.</p>
+    </div></details>
+  </article>
+
+  <article class="card" data-check="exp-6">
+    <div class="card-head"><input type="checkbox" id="exp-6"><label for="exp-6"><p><b>6.</b> In <code>KitchenConfig</code>, remove <code>@Configuration</code> and run the tests. Does anything change?</p></label></div>
+    <details><summary>What happened</summary><div>
+      <p>Nothing visible changes. All 7 tests pass and the bean names are the same, because the class is registered directly and its <code>@Bean</code> methods are still processed. You did lose something, though the module doesn't exercise it: Stage 7 explains what happens when one <code>@Bean</code> method calls another.</p>
+    </div></details>
+  </article>
+
+  <article class="card" data-check="exp-7">
+    <div class="card-head"><input type="checkbox" id="exp-7"><label for="exp-7"><p><b>7.</b> In <code>JavaConfigApp</code>, identify each printed bean name. Which ones didn't you define?</p></label></div>
+    <details><summary>What happened</summary><div>
+<pre class="term"><span class="dim">org.springframework.context.annotation.internalConfigurationAnnotationProcessor
+org.springframework.context.annotation.internalAutowiredAnnotationProcessor
+org.springframework.context.event.internalEventListenerProcessor
+org.springframework.context.event.internalEventListenerFactory</span>
+kitchenConfig
+pantry
+stove
+clock
+breakfastCook</pre>
+      <p>You didn't define the first four. <code>kitchenConfig</code> is your class, but you never declared it as a bean: passing it to the context constructor did that.</p>
+    </div></details>
+  </article>
+
+  <article class="card" data-check="exp-8">
+    <div class="card-head"><input type="checkbox" id="exp-8"><label for="exp-8"><p><b>8.</b> In <code>ScanConfig</code>, change the scan to <code>@ComponentScan("com.example.stage01")</code>. What does it find outside <code>scan</code>, and what happens to the bean called <code>breakfastCook</code>?</p></label></div>
+    <details><summary>What happened</summary><div>
+      <p>The scan finds <code>KitchenConfig</code>, and its <code>@Bean</code> methods replace the scanned definitions that have the same names. The bean names look unchanged, but the classes behind them aren't:</p>
+<pre class="term">kitchenConfig -&gt; com.example.stage01.javaconfig.KitchenConfig
+<mark>breakfastCook -&gt; com.example.stage01.plain.BreakfastCook</mark>
+pantry        -&gt; com.example.stage01.plain.Pantry
+stove         -&gt; com.example.stage01.plain.Stove</pre>
+      <p>So <code>ScanApp</code> fails with <code>NoSuchBeanDefinitionException</code> when it asks for <code>scan.BreakfastCook</code>. Two tests fail: <code>componentScanWiresTheCook</code> and <code>scanOnlyCoversTheConfigPackage</code>, which now finds the config it expected to miss.</p>
+    </div></details>
+  </article>
+
+  <article class="card" data-check="exp-9">
+    <div class="card-head"><input type="checkbox" id="exp-9"><label for="exp-9"><p><b>9.</b> In <code>BeanFactoryVsContextApp.bareFactory()</code>, call <code>factory.preInstantiateSingletons()</code> just before the <code>return</code>, and run the app. What moved in the output? Then, before that call, add <code>var processor = new AutowiredAnnotationBeanPostProcessor();</code>, <code>processor.setBeanFactory(factory);</code> and <code>factory.addBeanPostProcessor(processor);</code>. What is still different from a context?</p></label></div>
+    <details><summary>What happened</summary><div>
+<pre class="term">BeanFactory: registering the definition
+<mark>  -&gt; Probe constructor called</mark>
+BeanFactory: asking for the bean
+BeanFactory: @Autowired honoured? false      <span class="dim">// true with the processor</span></pre>
+      <p>The constructor line moves up, and the processor turns <code>false</code> into <code>true</code>. The output now matches a context, but you did by hand what <code>refresh()</code> does for you, and only for this one processor. <code>@Configuration</code> and <code>@ComponentScan</code> would still be ignored, because nothing registers the processor that reads them.</p>
+    </div></details>
+  </article>
+
+  <article class="card" data-check="exp-10">
+    <div class="card-head"><input type="checkbox" id="exp-10"><label for="exp-10"><p><b>10.</b> In <code>BeanFactoryVsContextApp.refreshedContext()</code>, replace <code>AnnotationConfigApplicationContext</code> with <code>GenericApplicationContext</code>, including the return type. Which of the two differences remains?</p></label></div>
+    <details><summary>What happened</summary><div>
+<pre class="term">ApplicationContext: refreshing
+<mark>  -&gt; Probe constructor called</mark>
+ApplicationContext: asking for the bean
+ApplicationContext: @Autowired honoured? <mark>false</mark></pre>
+      <p>Eager creation remains, because that comes from being an <code>ApplicationContext</code>. <code>@Autowired</code> is now ignored, because <code>GenericApplicationContext</code> doesn't register the annotation processors. <code>annotationConfigContextIsEagerAndHonoursAutowired</code> fails.</p>
+    </div></details>
+  </article>
+</section>
+
+<section id="explain">
+  <h2>Done when you can explain</h2>
+  <p class="prose">Say your answer out loud first. The stage is finished when none of these needs looking up.</p>
+  <div class="progress" data-progress="q"><span data-count></span><div class="bar"><i></i></div></div>
+
+  <article class="card" data-check="q-1"><div class="card-head"><input type="checkbox" id="q-1"><label for="q-1"><p>What did you stop controlling when you moved from manual wiring to component scanning?</p></label></div>
+    <details><summary>Check your answer</summary><div><p>Which objects get created, in what order, which constructor is called, and who receives what. You now control this only indirectly, through annotations and types.</p></div></details></article>
+  <article class="card" data-check="q-2"><div class="card-head"><input type="checkbox" id="q-2"><label for="q-2"><p>What is the practical difference between <code>@Component</code>, <code>@Service</code>, and <code>@Repository</code>?</p></label></div>
+    <details><summary>Check your answer</summary><div><p>To the scan, none: all three made beans here, because <code>@Service</code> and <code>@Repository</code> are themselves annotated with <code>@Component</code>. <code>@Service</code> documents a role. <code>@Repository</code> also marks the class for persistence exception translation, if that processor is registered.</p></div></details></article>
+  <article class="card" data-check="q-3"><div class="card-head"><input type="checkbox" id="q-3"><label for="q-3"><p>Why is <code>@Autowired</code> optional on a class with a single constructor?</p></label></div>
+    <details><summary>Check your answer</summary><div><p>There is only one way to create the object, so Spring uses that constructor and resolves its parameters. <code>@Autowired</code> only becomes necessary when there are several to choose from, as experiment 5 shows.</p></div></details></article>
+  <article class="card" data-check="q-4"><div class="card-head"><input type="checkbox" id="q-4"><label for="q-4"><p>Why was <code>@Autowired</code> ignored by a bare <code>DefaultListableBeanFactory</code>?</p></label></div>
+    <details><summary>Check your answer</summary><div><p>An annotation is only metadata. <code>AutowiredAnnotationBeanPostProcessor</code> is what acts on it, and a bare factory doesn't register that processor. Add it by hand and the same factory honours the annotation.</p></div></details></article>
+  <article class="card" data-check="q-5"><div class="card-head"><input type="checkbox" id="q-5"><label for="q-5"><p>Why do applications normally use <code>ApplicationContext</code> rather than a bare <code>BeanFactory</code>?</p></label></div>
+    <details><summary>Check your answer</summary><div><p>It creates singletons eagerly, so broken wiring fails at startup instead of on first use. An annotation-configured context also sets up the processors that make annotations work, and contexts add features such as events, which Stage 5 covers.</p></div></details></article>
+  <article class="card" data-check="q-6"><div class="card-head"><input type="checkbox" id="q-6"><label for="q-6"><p>When would you choose <code>@Bean</code> over <code>@Component</code>?</p></label></div>
+    <details><summary>Check your answer</summary><div><p>Use <code>@Bean</code> for classes you can't annotate, such as <code>Clock</code>, when you want a class to stay free of Spring, or when creating the object takes logic. Use <code>@Component</code> for your own straightforward classes, where it saves writing a method that only calls the constructor.</p></div></details></article>
+  <p class="prose" style="margin-top:20px"><strong>Next:</strong> Stage 2 covers dependency injection in depth, including how to resolve the two-<code>Stove</code> conflict from experiment 4.</p>
+  <h3>Reading</h3>
+  <ul class="tight prose">
+    <li><a href="https://docs.spring.io/spring-framework/reference/core/beans/introduction.html">Introduction to the IoC container</a></li>
+    <li><a href="https://docs.spring.io/spring-framework/reference/core/beans/basics.html">Container overview</a></li>
+    <li><a href="https://docs.spring.io/spring-framework/reference/core/beans/classpath-scanning.html">Classpath scanning</a></li>
+    <li><a href="https://docs.spring.io/spring-framework/reference/core/beans/java.html">Java-based configuration</a></li>
+    <li><a href="https://docs.spring.io/spring-framework/reference/core/beans/beanfactory.html">The <code>BeanFactory</code> API</a></li>
+  </ul>
+</section>
+
+<section id="source">
+  <h2>Source code</h2>
+  <p class="prose">Every source file in the module, at commit <code>2c2c740</code>.</p>
+  <div class="browser">
+    <div class="files" id="file-list"></div>
+    <div class="viewer" id="file-view"></div>
+  </div>
+</section>
+
+<section id="run">
+  <h2>Run it</h2>
+  <p class="prose">You need JDK 25 and Maven. From the repo root:</p>
+<pre class="term">mvn -q test
+mvn -q -pl stage-01-ioc compile exec:java -Dexec.mainClass=com.example.stage01.manual.ManualWiringApp
+mvn -q -pl stage-01-ioc compile exec:java -Dexec.mainClass=com.example.stage01.javaconfig.JavaConfigApp
+mvn -q -pl stage-01-ioc compile exec:java -Dexec.mainClass=com.example.stage01.scan.ScanApp
+mvn -q -pl stage-01-ioc compile exec:java -Dexec.mainClass=com.example.stage01.factory.BeanFactoryVsContextApp</pre>
+</section>
+
+<footer>
+  Built from <a href="https://github.com/kejhy93/autowired-baked-beans/tree/main/stage-01-ioc"><code>stage-01-ioc</code></a>, its README, and <a href="https://github.com/kejhy93/autowired-baked-beans/issues/2">issue #2</a>. Times in the output will differ when you run it.
+</footer>
+</main>
+</div>
+
+<script type="application/json" id="sources">{"stage-01-ioc/pom.xml": "\u003c?xml version=\"1.0\" encoding=\"UTF-8\"?>\n\u003cproject xmlns=\"http://maven.apache.org/POM/4.0.0\"\n         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd\">\n    \u003cmodelVersion>4.0.0\u003c/modelVersion>\n\n    \u003cparent>\n        \u003cgroupId>com.example\u003c/groupId>\n        \u003cartifactId>autowired-baked-beans\u003c/artifactId>\n        \u003cversion>0.1.0-SNAPSHOT\u003c/version>\n    \u003c/parent>\n\n    \u003cartifactId>stage-01-ioc\u003c/artifactId>\n\n    \u003cdependencies>\n        \u003cdependency>\n            \u003cgroupId>org.springframework\u003c/groupId>\n            \u003cartifactId>spring-context\u003c/artifactId>\n        \u003c/dependency>\n        \u003cdependency>\n            \u003cgroupId>org.junit.jupiter\u003c/groupId>\n            \u003cartifactId>junit-jupiter\u003c/artifactId>\n            \u003cscope>test\u003c/scope>\n        \u003c/dependency>\n    \u003c/dependencies>\n\u003c/project>\n", "stage-01-ioc/src/main/java/com/example/stage01/factory/BeanFactoryVsContextApp.java": "package com.example.stage01.factory;\n\nimport org.springframework.beans.factory.support.DefaultListableBeanFactory;\nimport org.springframework.beans.factory.support.RootBeanDefinition;\nimport org.springframework.context.annotation.AnnotationConfigApplicationContext;\n\nimport java.time.Clock;\n\n/**\n * Shows the two differences that matter most between a bare BeanFactory and an\n * AnnotationConfigApplicationContext: when singletons are created, and whether annotations\n * are processed. Eager creation comes from being an ApplicationContext, while the annotation\n * support comes from the processors that this particular context registers.\n */\npublic class BeanFactoryVsContextApp {\n\n    public static void main(String[] args) {\n        System.out.println(\"BeanFactory: registering the definition\");\n        DefaultListableBeanFactory factory = bareFactory();\n        System.out.println(\"BeanFactory: asking for the bean\");\n        Probe fromFactory = factory.getBean(Probe.class);\n        System.out.println(\"BeanFactory: @Autowired honoured? \" + fromFactory.isWired());\n\n        System.out.println();\n\n        System.out.println(\"ApplicationContext: refreshing\");\n        try (var context = refreshedContext()) {\n            System.out.println(\"ApplicationContext: asking for the bean\");\n            Probe fromContext = context.getBean(Probe.class);\n            System.out.println(\"ApplicationContext: @Autowired honoured? \" + fromContext.isWired());\n        }\n    }\n\n    static DefaultListableBeanFactory bareFactory() {\n        DefaultListableBeanFactory factory = new DefaultListableBeanFactory();\n        // Available on purpose, so an unwired Probe can only mean @Autowired was ignored\n        factory.registerSingleton(\"clock\", Clock.systemUTC());\n        factory.registerBeanDefinition(\"probe\", new RootBeanDefinition(Probe.class));\n        return factory;\n    }\n\n    static AnnotationConfigApplicationContext refreshedContext() {\n        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();\n        context.registerBean(\"clock\", Clock.class, Clock::systemUTC);\n        context.registerBean(\"probe\", Probe.class);\n        context.refresh();\n        return context;\n    }\n}\n", "stage-01-ioc/src/main/java/com/example/stage01/factory/Probe.java": "package com.example.stage01.factory;\n\nimport org.springframework.beans.factory.annotation.Autowired;\n\nimport java.time.Clock;\n\n/**\n * Reports when it is created and whether {@code @Autowired} was honoured.\n * Uses setter injection because, by default, a bare BeanFactory can't supply constructor\n * arguments: creating the bean would fail, and there would be nothing left to report.\n */\npublic class Probe {\n\n    private Clock clock;\n\n    public Probe() {\n        System.out.println(\"  -> Probe constructor called\");\n    }\n\n    @Autowired\n    public void setClock(Clock clock) {\n        this.clock = clock;\n    }\n\n    public boolean isWired() {\n        return clock != null;\n    }\n}\n", "stage-01-ioc/src/main/java/com/example/stage01/javaconfig/JavaConfigApp.java": "package com.example.stage01.javaconfig;\n\nimport com.example.stage01.plain.BreakfastCook;\nimport org.springframework.context.annotation.AnnotationConfigApplicationContext;\n\nimport java.util.Arrays;\n\n/**\n * Runs variant 2, which is wired by {@link KitchenConfig}.\n */\npublic class JavaConfigApp {\n\n    public static void main(String[] args) {\n        try (var context = new AnnotationConfigApplicationContext(KitchenConfig.class)) {\n            BreakfastCook cook = context.getBean(BreakfastCook.class);\n            System.out.println(cook.cook());\n\n            // Includes Spring's own infrastructure beans, as well as yours\n            Arrays.stream(context.getBeanDefinitionNames()).forEach(System.out::println);\n        }\n    }\n}\n", "stage-01-ioc/src/main/java/com/example/stage01/javaconfig/KitchenConfig.java": "package com.example.stage01.javaconfig;\n\nimport com.example.stage01.plain.BreakfastCook;\nimport com.example.stage01.plain.Pantry;\nimport com.example.stage01.plain.Stove;\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.Configuration;\n\nimport java.time.Clock;\n\n/**\n * Variant 2: explicit {@code @Bean} methods. The classes stay free of Spring, so this\n * style also works for classes you can't annotate, such as {@link Clock}.\n * Method parameters are the dependencies. Spring resolves them by type, and if several beans\n * match, it can fall back to the parameter name when compiled with {@code -parameters}.\n */\n@Configuration\npublic class KitchenConfig {\n\n    @Bean\n    public Pantry pantry() {\n        return new Pantry();\n    }\n\n    @Bean\n    public Stove stove() {\n        return new Stove();\n    }\n\n    @Bean\n    public Clock clock() {\n        return Clock.systemDefaultZone();\n    }\n\n    @Bean\n    public BreakfastCook breakfastCook(Pantry pantry, Stove stove, Clock clock) {\n        return new BreakfastCook(pantry, stove, clock);\n    }\n}\n", "stage-01-ioc/src/main/java/com/example/stage01/manual/ManualWiringApp.java": "package com.example.stage01.manual;\n\nimport com.example.stage01.plain.BreakfastCook;\nimport com.example.stage01.plain.Pantry;\nimport com.example.stage01.plain.Stove;\n\nimport java.time.Clock;\n\n/**\n * Variant 1: no Spring. This method decides what gets created, in what order,\n * and who shares what. Spring takes over exactly this job.\n */\npublic class ManualWiringApp {\n\n    public static void main(String[] args) {\n        Pantry pantry = new Pantry();\n        Stove stove = new Stove();\n        Clock clock = Clock.systemDefaultZone();\n        BreakfastCook cook = new BreakfastCook(pantry, stove, clock);\n\n        System.out.println(cook.cook());\n    }\n}\n", "stage-01-ioc/src/main/java/com/example/stage01/plain/BreakfastCook.java": "package com.example.stage01.plain;\n\nimport java.time.Clock;\nimport java.time.LocalTime;\nimport java.time.format.DateTimeFormatter;\n\n/**\n * Has no Spring imports. It only declares what it needs, and whoever creates it\n * supplies those things. That is dependency injection, with or without a container.\n */\npublic class BreakfastCook {\n\n    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern(\"HH:mm:ss\");\n\n    private final Pantry pantry;\n    private final Stove stove;\n    private final Clock clock;\n\n    public BreakfastCook(Pantry pantry, Stove stove, Clock clock) {\n        this.pantry = pantry;\n        this.stove = stove;\n        this.clock = clock;\n    }\n\n    public String cook() {\n        String now = LocalTime.now(clock).format(TIME_FORMAT);\n        return stove.heat(pantry.openCan()) + \", served at \" + now;\n    }\n}\n", "stage-01-ioc/src/main/java/com/example/stage01/plain/Pantry.java": "package com.example.stage01.plain;\n\npublic class Pantry {\n\n    public String openCan() {\n        return \"baked beans\";\n    }\n}\n", "stage-01-ioc/src/main/java/com/example/stage01/plain/Stove.java": "package com.example.stage01.plain;\n\npublic class Stove {\n\n    public String heat(String food) {\n        return \"hot \" + food;\n    }\n}\n", "stage-01-ioc/src/main/java/com/example/stage01/scan/BreakfastCook.java": "package com.example.stage01.scan;\n\nimport org.springframework.stereotype.Service;\n\nimport java.time.Clock;\nimport java.time.LocalTime;\nimport java.time.format.DateTimeFormatter;\n\n/**\n * No {@code @Autowired} is needed: a class with a single constructor uses it for injection.\n */\n@Service\npublic class BreakfastCook {\n\n    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern(\"HH:mm:ss\");\n\n    private final Pantry pantry;\n    private final Stove stove;\n    private final Clock clock;\n\n    public BreakfastCook(Pantry pantry, Stove stove, Clock clock) {\n        this.pantry = pantry;\n        this.stove = stove;\n        this.clock = clock;\n    }\n\n    public String cook() {\n        String now = LocalTime.now(clock).format(TIME_FORMAT);\n        return stove.heat(pantry.openCan()) + \", served at \" + now;\n    }\n}\n", "stage-01-ioc/src/main/java/com/example/stage01/scan/Pantry.java": "package com.example.stage01.scan;\n\nimport org.springframework.stereotype.Repository;\n\n@Repository\npublic class Pantry {\n\n    public String openCan() {\n        return \"baked beans\";\n    }\n}\n", "stage-01-ioc/src/main/java/com/example/stage01/scan/ScanApp.java": "package com.example.stage01.scan;\n\nimport org.springframework.context.annotation.AnnotationConfigApplicationContext;\n\nimport java.util.Arrays;\n\n/**\n * Runs variant 3, which is wired by {@link ScanConfig}.\n */\npublic class ScanApp {\n\n    public static void main(String[] args) {\n        try (var context = new AnnotationConfigApplicationContext(ScanConfig.class)) {\n            BreakfastCook cook = context.getBean(BreakfastCook.class);\n            System.out.println(cook.cook());\n\n            // Includes Spring's own infrastructure beans, as well as yours\n            Arrays.stream(context.getBeanDefinitionNames()).forEach(System.out::println);\n        }\n    }\n}\n", "stage-01-ioc/src/main/java/com/example/stage01/scan/ScanConfig.java": "package com.example.stage01.scan;\n\nimport org.springframework.context.annotation.Bean;\nimport org.springframework.context.annotation.ComponentScan;\nimport org.springframework.context.annotation.Configuration;\n\nimport java.time.Clock;\n\n/**\n * Variant 3: component scanning. With no arguments, {@code @ComponentScan} scans this\n * class's package and its subpackages. {@link Clock} still needs a {@code @Bean} method,\n * because you can't add {@code @Component} to a JDK class.\n */\n@Configuration\n@ComponentScan\npublic class ScanConfig {\n\n    @Bean\n    public Clock clock() {\n        return Clock.systemDefaultZone();\n    }\n}\n", "stage-01-ioc/src/main/java/com/example/stage01/scan/Stove.java": "package com.example.stage01.scan;\n\nimport org.springframework.stereotype.Component;\n\n@Component\npublic class Stove {\n\n    public String heat(String food) {\n        return \"hot \" + food;\n    }\n}\n", "stage-01-ioc/src/test/java/com/example/stage01/WiringTest.java": "package com.example.stage01;\n\nimport com.example.stage01.javaconfig.KitchenConfig;\nimport com.example.stage01.plain.BreakfastCook;\nimport com.example.stage01.scan.ScanConfig;\nimport org.junit.jupiter.api.Test;\nimport org.springframework.beans.factory.NoSuchBeanDefinitionException;\nimport org.springframework.beans.factory.config.BeanPostProcessor;\nimport org.springframework.context.annotation.AnnotationConfigApplicationContext;\n\nimport java.time.Clock;\nimport java.time.Instant;\nimport java.time.ZoneOffset;\n\nimport static org.junit.jupiter.api.Assertions.assertEquals;\nimport static org.junit.jupiter.api.Assertions.assertSame;\nimport static org.junit.jupiter.api.Assertions.assertThrows;\n\n/**\n * Starts a real container for each wiring style and checks what it built.\n */\nclass WiringTest {\n\n    private static final Clock EIGHT_O_CLOCK = Clock.fixed(Instant.parse(\"2026-01-01T08:00:00Z\"), ZoneOffset.UTC);\n\n    /**\n     * The {@code @Bean} methods create the cook and pass it everything it needs.\n     */\n    @Test\n    void javaConfigWiresTheCook() {\n        try (var context = contextAtEightOClock(KitchenConfig.class)) {\n            assertEquals(\"hot baked beans, served at 08:00:00\", context.getBean(BreakfastCook.class).cook());\n        }\n    }\n\n    /**\n     * The scan finds the annotated classes, and Spring connects them through the constructor.\n     * This is the cook from the {@code scan} package, not the one from {@code plain}.\n     */\n    @Test\n    void componentScanWiresTheCook() {\n        try (var context = contextAtEightOClock(ScanConfig.class)) {\n            assertEquals(\"hot baked beans, served at 08:00:00\",\n                    context.getBean(com.example.stage01.scan.BreakfastCook.class).cook());\n        }\n    }\n\n    /**\n     * {@code assertSame} checks identity, not equality: both lookups must return the same object.\n     */\n    @Test\n    void beansAreSingletonsByDefault() {\n        try (var context = new AnnotationConfigApplicationContext(KitchenConfig.class)) {\n            assertSame(context.getBean(BreakfastCook.class), context.getBean(BreakfastCook.class));\n        }\n    }\n\n    /**\n     * {@link KitchenConfig} is annotated, but it sits outside the {@code scan} package,\n     * so the scan never sees it and the lookup fails.\n     */\n    @Test\n    void scanOnlyCoversTheConfigPackage() {\n        try (var context = new AnnotationConfigApplicationContext(ScanConfig.class)) {\n            assertThrows(NoSuchBeanDefinitionException.class, () -> context.getBean(KitchenConfig.class));\n        }\n    }\n\n    /**\n     * Replaces the config's own clock instead of adding a second one, so these tests\n     * still fail if the config stops defining a clock.\n     */\n    private static AnnotationConfigApplicationContext contextAtEightOClock(Class\u003c?> config) {\n        var context = new AnnotationConfigApplicationContext();\n        context.register(config);\n        context.getBeanFactory().addBeanPostProcessor(new BeanPostProcessor() {\n            @Override\n            public Object postProcessAfterInitialization(Object bean, String beanName) {\n                return bean instanceof Clock ? EIGHT_O_CLOCK : bean;\n            }\n        });\n        context.refresh();\n        return context;\n    }\n}\n", "stage-01-ioc/src/test/java/com/example/stage01/factory/BeanFactoryVsContextTest.java": "package com.example.stage01.factory;\n\nimport org.junit.jupiter.api.Test;\n\nimport static org.junit.jupiter.api.Assertions.assertFalse;\nimport static org.junit.jupiter.api.Assertions.assertTrue;\n\n/**\n * Pins down the two differences that {@link BeanFactoryVsContextApp} prints: when the\n * singleton is created, and whether {@code @Autowired} is processed.\n */\nclass BeanFactoryVsContextTest {\n\n    /**\n     * The factory has only a definition until something asks for the bean, and it creates\n     * the bean without calling the {@code @Autowired} setter.\n     */\n    @Test\n    void bareFactoryIsLazyAndIgnoresAutowired() {\n        var factory = BeanFactoryVsContextApp.bareFactory();\n\n        assertFalse(factory.containsSingleton(\"probe\"));\n        assertFalse(factory.getBean(Probe.class).isWired());\n        assertTrue(factory.containsSingleton(\"probe\"));\n    }\n\n    /**\n     * The singleton already exists when {@code refresh()} returns, before any {@code getBean}\n     * call, and its {@code @Autowired} setter has been called.\n     */\n    @Test\n    void annotationConfigContextIsEagerAndHonoursAutowired() {\n        try (var context = BeanFactoryVsContextApp.refreshedContext()) {\n            assertTrue(context.getBeanFactory().containsSingleton(\"probe\"));\n            assertTrue(context.getBean(Probe.class).isWired());\n        }\n    }\n}\n", "stage-01-ioc/src/test/java/com/example/stage01/plain/BreakfastCookTest.java": "package com.example.stage01.plain;\n\nimport org.junit.jupiter.api.Test;\n\nimport java.time.Clock;\nimport java.time.Instant;\nimport java.time.ZoneOffset;\n\nimport static org.junit.jupiter.api.Assertions.assertEquals;\n\n/**\n * No container needed: because the clock is injected, a test can supply a fixed one\n * and assert the exact output.\n */\nclass BreakfastCookTest {\n\n    @Test\n    void servesAtTheTimeOnTheInjectedClock() {\n        Clock eightOClock = Clock.fixed(Instant.parse(\"2026-01-01T08:00:00Z\"), ZoneOffset.UTC);\n        BreakfastCook cook = new BreakfastCook(new Pantry(), new Stove(), eightOClock);\n\n        assertEquals(\"hot baked beans, served at 08:00:00\", cook.cook());\n    }\n}\n"}</script>
+<script>
+(function () {
+  'use strict';
+  var REPO = 'https://github.com/kejhy93/autowired-baked-beans/blob/main/';
+  var sources = JSON.parse(document.getElementById('sources').textContent);
+
+  function escapeHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  // Comments and strings first, so keywords inside them stay plain
+  var TOKEN = /(\/\*[\s\S]*?\*\/|\/\/[^\n]*)|("(?:[^"\\\n]|\\.)*")|(@[A-Za-z]+)|\b(package|import|public|private|protected|static|final|class|interface|new|return|void|boolean|var|try|for|this|extends|implements|null|true|false)\b|\b([A-Z][A-Za-z0-9_]*)\b/g;
+  var CLASSES = [null, 't-comment', 't-string', 't-annotation', 't-keyword', 't-type'];
+
+  function highlight(code) {
+    var out = '', last = 0, m;
+    TOKEN.lastIndex = 0;
+    while ((m = TOKEN.exec(code))) {
+      out += escapeHtml(code.slice(last, m.index));
+      for (var g = 1; g < CLASSES.length; g++) {
+        if (m[g] !== undefined) {
+          out += '<span class="' + CLASSES[g] + '">' + escapeHtml(m[g]) + '</span>';
+          break;
+        }
+      }
+      last = TOKEN.lastIndex;
+    }
+    return out + escapeHtml(code.slice(last));
+  }
+
+  function shortName(path) {
+    return path.replace('stage-01-ioc/src/main/java/com/example/stage01/', '')
+      .replace('stage-01-ioc/src/test/java/com/example/stage01/', 'test/')
+      .replace('stage-01-ioc/', '');
+  }
+
+  function renderFile(path) {
+    var isJava = /\.java$/.test(path);
+    return '<div class="file-label"><span>' + escapeHtml(shortName(path)) + '</span>' +
+      '<a href="' + REPO + path + '">View on GitHub</a></div>' +
+      '<pre class="code" tabindex="0"><code style="background:none;padding:0;font:inherit;overflow-wrap:normal">' +
+      (isJava ? highlight(sources[path]) : escapeHtml(sources[path])) + '</code></pre>';
+  }
+
+  document.querySelectorAll('[data-file]').forEach(function (el) {
+    el.innerHTML = renderFile(el.getAttribute('data-file'));
+  });
+
+  // Wiring tabs
+  document.querySelectorAll('[data-tabs]').forEach(function (list) {
+    var tabs = Array.prototype.slice.call(list.querySelectorAll('[role="tab"]'));
+    function select(tab, focus) {
+      tabs.forEach(function (t) {
+        var on = t === tab;
+        t.setAttribute('aria-selected', String(on));
+        if (on) { t.removeAttribute('tabindex'); } else { t.setAttribute('tabindex', '-1'); }
+        document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+      });
+      if (focus) { tab.focus(); }
+    }
+    tabs.forEach(function (tab, i) {
+      tab.addEventListener('click', function () { select(tab); });
+      tab.addEventListener('keydown', function (e) {
+        var d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+        if (d) { e.preventDefault(); select(tabs[(i + d + tabs.length) % tabs.length], true); }
+      });
+    });
+  });
+
+  // refresh() walkthrough
+  var P = 'org.springframework.context.';
+  var INFRA = [P + 'annotation.internalConfigurationAnnotationProcessor', P + 'annotation.internalAutowiredAnnotationProcessor', P + 'event.internalEventListenerProcessor', P + 'event.internalEventListenerFactory'];
+  var EARLY = [INFRA[0], INFRA[2], INFRA[3]];
+  var VARIANTS = {
+    javaconfig: {
+      config: 'kitchenConfig',
+      read: ['pantry', 'stove', 'clock', 'breakfastCook'],
+      created: ['kitchenConfig', 'pantry', 'stove', 'clock', 'breakfastCook'],
+      stepTwo: 'A processor finds the @Bean methods in KitchenConfig and adds a definition for each one, in the order the methods were found. None of your objects exist yet.',
+      stepFour: 'Spring calls your @Bean methods. The parameters of breakfastCook(Pantry, Stove, Clock) tell Spring what to pass in, and it resolves each one by type. breakfastCook happens to be last in the list, so everything it needs already exists.'
+    },
+    scan: {
+      config: 'scanConfig',
+      read: ['breakfastCook', 'pantry', 'stove', 'clock'],
+      created: ['scanConfig', 'pantry', 'stove', 'clock', 'breakfastCook'],
+      stepTwo: '@ComponentScan searches the scan package for annotated classes and adds a definition for each one. The definitions for ScanConfig\'s @Bean methods are added afterwards, so clock comes last.',
+      stepFour: 'breakfastCook is first in the definitions, but it finishes last. To create it, Spring first creates whatever it still needs. This is the ordering work you did by hand in ManualWiringApp.'
+    }
+  };
+  var STEPS = [
+    { title: '1. Register infrastructure', text: function () { return 'This context adds definitions for the processors that understand annotations, and then a definition for your configuration class. refresh() hasn\'t started yet.'; } },
+    { title: '2. Read your configuration', text: function (v) { return v.stepTwo; } },
+    { title: '3. Prepare for bean creation', text: function () { return 'The processors that act on each new bean, such as the one that handles @Autowired, are set up. There are no new definitions, and your objects still don\'t exist.'; } },
+    { title: '4. Create the singletons', text: function (v) { return v.stepFour; } }
+  ];
+  var variant = 'javaconfig', step = 0;
+  var stepsEl = document.getElementById('refresh-steps');
+  var stepButtons = STEPS.map(function (s, i) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = 'Step ' + (i + 1);
+    b.addEventListener('click', function () { step = i; renderStep(); });
+    stepsEl.appendChild(b);
+    return b;
+  });
+
+  function fill(list, items, previous, emptyText) {
+    list.innerHTML = '';
+    if (!items.length) {
+      var e = document.createElement('li');
+      e.className = 'empty';
+      e.textContent = emptyText;
+      list.appendChild(e);
+    }
+    items.forEach(function (name) {
+      var li = document.createElement('li');
+      var infra = name.indexOf('org.') === 0;
+      li.className = (infra ? 'infra' : 'mine') + (previous.indexOf(name) < 0 ? ' new' : '');
+      li.textContent = name;
+      list.appendChild(li);
+    });
+  }
+
+  function stateAt(v, s) {
+    if (s < 0) { return { defs: [], objs: [] }; }
+    var defs = INFRA.concat(v.config);
+    if (s >= 1) { defs = defs.concat(v.read); }
+    var objs = [];
+    if (s >= 1) { objs = EARLY.slice(); }
+    if (s >= 2) { objs = objs.concat(INFRA[1]); }
+    if (s >= 3) { objs = objs.concat(v.created); }
+    return { defs: defs, objs: objs };
+  }
+
+  function renderStep() {
+    var v = VARIANTS[variant];
+    var now = stateAt(v, step), before = stateAt(v, step - 1);
+    document.getElementById('step-title').textContent = STEPS[step].title;
+    document.getElementById('step-text').textContent = STEPS[step].text(v);
+    fill(document.getElementById('state-defs'), now.defs, before.defs, 'None yet');
+    fill(document.getElementById('state-objs'), now.objs, before.objs, 'None yet');
+    stepButtons.forEach(function (b, i) {
+      if (i === step) { b.setAttribute('aria-current', 'step'); } else { b.removeAttribute('aria-current'); }
+    });
+    document.getElementById('step-prev').disabled = step === 0;
+    document.getElementById('step-next').disabled = step === STEPS.length - 1;
+  }
+
+  document.getElementById('step-prev').addEventListener('click', function () { step = Math.max(0, step - 1); renderStep(); });
+  document.getElementById('step-next').addEventListener('click', function () { step = Math.min(STEPS.length - 1, step + 1); renderStep(); });
+  var variantButtons = document.querySelectorAll('#refresh-variant button');
+  function syncVariantButtons() {
+    variantButtons.forEach(function (b) {
+      var on = b.getAttribute('data-variant') === variant;
+      b.setAttribute('aria-pressed', String(on));
+      b.style.background = on ? 'var(--sauce)' : '';
+      b.style.borderColor = on ? 'var(--sauce)' : '';
+      b.style.color = on ? 'var(--paper)' : '';
+    });
+  }
+  variantButtons.forEach(function (b) {
+    b.addEventListener('click', function () {
+      variant = b.getAttribute('data-variant');
+      syncVariantButtons();
+      renderStep();
+    });
+  });
+  syncVariantButtons();
+  renderStep();
+
+  // Source browser
+  var listEl = document.getElementById('file-list');
+  var viewEl = document.getElementById('file-view');
+  var groups = {};
+  Object.keys(sources).forEach(function (path) {
+    var name = shortName(path), i = name.lastIndexOf('/');
+    var group = i < 0 ? 'module' : name.slice(0, i);
+    (groups[group] = groups[group] || []).push({ path: path, label: i < 0 ? name : name.slice(i + 1) });
+  });
+  var fileButtons = [];
+  function showFile(path) {
+    viewEl.innerHTML = renderFile(path);
+    fileButtons.forEach(function (b) {
+      b.el.setAttribute('aria-current', String(b.path === path));
+    });
+  }
+  Object.keys(groups).forEach(function (group) {
+    var h = document.createElement('h4');
+    h.textContent = group;
+    listEl.appendChild(h);
+    groups[group].forEach(function (f) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = f.label;
+      b.addEventListener('click', function () { showFile(f.path); });
+      listEl.appendChild(b);
+      fileButtons.push({ el: b, path: f.path });
+    });
+  });
+  showFile('stage-01-ioc/src/main/java/com/example/stage01/plain/BreakfastCook.java');
+
+  // Ticks are a per-browser convenience, so the page works the same if storage is unavailable
+  var KEY = 'autowired-baked-beans:stage-01';
+  var ticks = {};
+  try { ticks = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { ticks = {}; }
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(ticks)); } catch (e) { /* not remembered */ }
+  }
+  function updateProgress() {
+    document.querySelectorAll('[data-progress]').forEach(function (p) {
+      var prefix = p.getAttribute('data-progress') + '-';
+      var cards = document.querySelectorAll('[data-check^="' + prefix + '"]');
+      var done = 0;
+      cards.forEach(function (c) { if (ticks[c.getAttribute('data-check')]) { done++; } });
+      p.querySelector('[data-count]').textContent = done + ' of ' + cards.length + ' done';
+      p.querySelector('.bar i').style.width = (100 * done / cards.length) + '%';
+    });
+  }
+  document.querySelectorAll('[data-check]').forEach(function (card) {
+    var id = card.getAttribute('data-check');
+    var box = card.querySelector('input');
+    box.checked = !!ticks[id];
+    card.classList.toggle('done', box.checked);
+    box.addEventListener('change', function () {
+      if (box.checked) { ticks[id] = true; } else { delete ticks[id]; }
+      card.classList.toggle('done', box.checked);
+      save();
+      updateProgress();
+    });
+  });
+  updateProgress();
+
+  // Contents highlight
+  var links = document.querySelectorAll('nav.toc a');
+  if ('IntersectionObserver' in window) {
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          links.forEach(function (a) {
+            a.setAttribute('aria-current', String(a.getAttribute('href') === '#' + entry.target.id));
+          });
+        }
+      });
+    }, { rootMargin: '-15% 0px -75% 0px' });
+    document.querySelectorAll('main section[id]').forEach(function (s) { observer.observe(s); });
+  }
+})();
+</script>
+</body>
+</html>
