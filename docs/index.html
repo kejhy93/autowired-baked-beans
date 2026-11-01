@@ -586,7 +586,8 @@ mvn -q -pl stage-01-ioc compile exec:java -Dexec.mainClass=com.example.stage01.f
 <script>
 (function () {
   'use strict';
-  var REPO = 'https://github.com/kejhy93/autowired-baked-beans/blob/main/';
+  // The commit the embedded sources were taken from, so the links show the same code as the page
+  var REPO = 'https://github.com/kejhy93/autowired-baked-beans/blob/2c2c7401078d7187ad6375a34a2d88ca34723ef2/';
   var sources = JSON.parse(document.getElementById('sources').textContent);
 
   function escapeHtml(s) {
@@ -787,9 +788,25 @@ mvn -q -pl stage-01-ioc compile exec:java -Dexec.mainClass=com.example.stage01.f
   // Ticks are a per-browser convenience, so the page works the same if storage is unavailable
   var KEY = 'autowired-baked-beans:stage-01';
   var ticks = {};
-  try { ticks = JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { ticks = {}; }
+  var cards = document.querySelectorAll('[data-check]');
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw === null) { return; }
+      var stored = JSON.parse(raw);
+      ticks = stored && typeof stored === 'object' && !Array.isArray(stored) ? stored : {};
+    } catch (e) { /* keep what this page already has */ }
+  }
   function save() {
     try { localStorage.setItem(KEY, JSON.stringify(ticks)); } catch (e) { /* not remembered */ }
+  }
+  function render() {
+    cards.forEach(function (card) {
+      var on = !!ticks[card.getAttribute('data-check')];
+      card.querySelector('input').checked = on;
+      card.classList.toggle('done', on);
+    });
+    updateProgress();
   }
   function updateProgress() {
     document.querySelectorAll('[data-progress]').forEach(function (p) {
@@ -801,19 +818,22 @@ mvn -q -pl stage-01-ioc compile exec:java -Dexec.mainClass=com.example.stage01.f
       p.querySelector('.bar i').style.width = (100 * done / cards.length) + '%';
     });
   }
-  document.querySelectorAll('[data-check]').forEach(function (card) {
+  cards.forEach(function (card) {
     var id = card.getAttribute('data-check');
     var box = card.querySelector('input');
-    box.checked = !!ticks[id];
-    card.classList.toggle('done', box.checked);
     box.addEventListener('change', function () {
+      // Start from the stored ticks, so a change made in another tab isn't overwritten
+      load();
       if (box.checked) { ticks[id] = true; } else { delete ticks[id]; }
-      card.classList.toggle('done', box.checked);
       save();
-      updateProgress();
+      render();
     });
   });
-  updateProgress();
+  window.addEventListener('storage', function (e) {
+    if (e.key === KEY) { load(); render(); }
+  });
+  load();
+  render();
 
   // Contents highlight
   var links = document.querySelectorAll('nav.toc a');
