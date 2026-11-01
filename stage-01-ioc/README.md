@@ -34,7 +34,7 @@ Predict the result of each one before you run it.
 2. In `ScanConfig`, change the scan to `@ComponentScan("com.example.stage01.plain")`.
 3. In `KitchenConfig`, rename `pantry()` to `larder()`. Does injection still work? What is the bean called now?
 4. In `KitchenConfig`, add a second `Stove` `@Bean` method called `backupStove`. (Stage 2 covers the fixes.) Then run `mvn -q clean test -Dmaven.compiler.parameters=true`. Why does the same code work now? (Hint: look at the parameter names of `breakfastCook(...)`.)
-5. In `scan/BreakfastCook.java`, add a second constructor that takes only `Pantry` and `Stove`. What does Spring need from you now? Then replace it with a no-argument constructor that calls `this(new Pantry(), new Stove(), Clock.systemUTC())`. Why do the tests pass, and who chose the dependencies? Finally, add a second constructor to `plain/BreakfastCook.java`. Why does nothing change?
+5. In `scan/BreakfastCook.java`, add a second constructor that takes only `Pantry` and `Stove`. What does Spring need from you now? Then replace it with a no-argument constructor that calls `this(new Pantry(), new Stove(), Clock.systemUTC())`. Why does `componentScanWiresTheCook` fail now, and who chose the dependencies? Finally, add a second constructor to `plain/BreakfastCook.java`. Why does nothing change?
 6. In `KitchenConfig`, remove `@Configuration` and run the tests. Does anything change? (Stage 7 explains what you lost.)
 7. In `JavaConfigApp`, identify each printed bean name. Which ones didn't you define?
 8. In `ScanConfig`, change the scan to `@ComponentScan("com.example.stage01")`. What does it find outside `scan`, and what happens to the bean called `breakfastCook`?
