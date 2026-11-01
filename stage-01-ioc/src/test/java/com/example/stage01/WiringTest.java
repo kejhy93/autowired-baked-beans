@@ -16,10 +16,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+/**
+ * Starts a real container for each wiring style and checks what it built.
+ */
 class WiringTest {
 
     private static final Clock EIGHT_O_CLOCK = Clock.fixed(Instant.parse("2026-01-01T08:00:00Z"), ZoneOffset.UTC);
 
+    /**
+     * The {@code @Bean} methods create the cook and pass it everything it needs.
+     */
     @Test
     void javaConfigWiresTheCook() {
         try (var context = contextAtEightOClock(KitchenConfig.class)) {
@@ -27,6 +33,10 @@ class WiringTest {
         }
     }
 
+    /**
+     * The scan finds the annotated classes, and Spring connects them through the constructor.
+     * This is the cook from the {@code scan} package, not the one from {@code plain}.
+     */
     @Test
     void componentScanWiresTheCook() {
         try (var context = contextAtEightOClock(ScanConfig.class)) {
@@ -35,6 +45,9 @@ class WiringTest {
         }
     }
 
+    /**
+     * {@code assertSame} checks identity, not equality: both lookups must return the same object.
+     */
     @Test
     void beansAreSingletonsByDefault() {
         try (var context = new AnnotationConfigApplicationContext(KitchenConfig.class)) {
@@ -42,6 +55,10 @@ class WiringTest {
         }
     }
 
+    /**
+     * {@link KitchenConfig} is annotated, but it sits outside the {@code scan} package,
+     * so the scan never sees it and the lookup fails.
+     */
     @Test
     void scanOnlyCoversTheConfigPackage() {
         try (var context = new AnnotationConfigApplicationContext(ScanConfig.class)) {
