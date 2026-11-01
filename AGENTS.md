@@ -25,9 +25,10 @@ A change is notable if someone following the docs would now see, run, or learn s
 | A class, bean, package, or variant is added, removed, or renamed | Formatting or comment-only changes |
 | Wiring or behavior changes | Refactors that keep names and behavior the same |
 | Program output changes | Tests that don't change what the docs claim |
-| Tests are added or removed, because the site shows the count | Patch or minor dependency bumps |
+| Tests are added or removed, because the site shows the count | Patch or minor bumps of dependencies other than Spring |
 | Run commands or the required JDK change | Build plugin bumps |
-| A major Spring or JDK version bump | |
+| Any Spring version bump, because the site shows the exact version | |
+| A major JDK version bump | |
 | A new stage module | |
 
 If you're unsure, treat the change as notable. If it isn't notable, skip the remaining steps and say so in your summary.
@@ -47,12 +48,12 @@ Update each of these that the change affects:
 - **Prose and experiments:** the sections that describe the code, including anything that quotes a README.
 - **Facts in the page header:** the Spring version, JDK version, and number of passing tests.
 - **Run commands:** the `#run` section.
-- **Embedded sources:** the JSON in `<script id="sources">` holds a copy of each file in the code viewer. Refresh every entry, and add or remove entries when files change. Each value must match its file exactly, and `<` must be written as `<`.
+- **Embedded sources:** the JSON in `<script id="sources">` holds a copy of each file in the code viewer. Refresh every entry, and add or remove entries when files change. After JSON decoding, each value must match its file exactly. In the raw HTML, write every `<` as the JSON escape `\u003c`. A literal `</script>` in a source file would otherwise end the script element early, which breaks the page and can run that file's markup as HTML.
 - **File references:** the `data-file` attributes and any `showFile(...)` calls must point to paths that exist in the embedded sources.
 
-Then confirm that the JSON still parses and every embedded value matches its file, and open the page in a browser if you can.
+Then confirm that the raw JSON contains no literal `<`, that it still parses, and that every embedded value matches its file. Open the page in a browser if you can.
 
-The `REPO` constant in the page script pins the source links to the commit the embedded sources came from. Pull requests are squash-merged, so a branch commit's SHA won't last. Leave `REPO` unchanged in the pull request and note that it needs a follow-up. After the merge, set `REPO` to the merge commit's full SHA in a separate pull request.
+The `REPO` constant in the page script pins the source links to the commit the embedded sources came from. Pull requests are squash-merged, so a branch commit's SHA won't last. If a pull request changes the embedded sources, leave `REPO` unchanged in it and note that it needs a follow-up. After the merge, set `REPO` to the merge commit's full SHA in a separate pull request. `REPO` must only move forward, so check `git log main -- docs/index.html` before opening the follow-up and again before merging it. If a later merge has refreshed the embedded sources, pin that merge instead. If `REPO` already points to it, close the follow-up.
 
 Non-notable changes leave the site alone. The embedded sources stay a consistent snapshot of the pinned commit, and the next notable change refreshes them.
 
