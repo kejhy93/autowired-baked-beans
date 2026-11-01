@@ -17,6 +17,8 @@
 [![Java CI with Maven](https://github.com/kejhy93/autowired-baked-beans/actions/workflows/maven.yml/badge.svg)](https://github.com/kejhy93/autowired-baked-beans/actions/workflows/maven.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
+![Alt](https://repobeats.axiom.co/api/embed/707511dfe59a6a22c756f55201b3c12352ba9634.svg "Repobeats analytics image")
+
 Experiments and examples exploring Spring Framework beans: dependency injection, scopes, lifecycle callbacks, conditional beans and BeanPostProcessors.
 
 The repo teaches these topics one stage at a time, with one Maven module per stage. It uses plain `spring-context` until Stage 7, because Spring Boot hides much of what you're trying to learn.
