@@ -25,17 +25,19 @@ The repo teaches these topics one stage at a time, with one Maven module per sta
 
 ## Start here
 
-- **[Interactive guide](https://kejhy93.github.io/autowired-baked-beans/):** walks through Stage 1 on one page, with a code viewer and the exercises.
+- **[Interactive guide](https://kejhy93.github.io/autowired-baked-beans/):** walks through Stages 1 and 2 on one page, with a code viewer and the exercises.
 - **[Stage 1 README](stage-01-ioc/README.md):** the full guide to the first stage, including its commands, sample output, and exercises.
+- **[Stage 2 README](stage-02-di/README.md):** the full guide to dependency injection, candidate resolution, and optional dependencies.
 - **[Learning plan](LEARNING_PLAN.md):** what each stage covers and what you build in it.
 
 ## Run it
 
-You need JDK 25 and Maven. From the repo root, run the tests and then the first example:
+You need JDK 25 and Maven. From the repo root, run the tests and examples:
 
 ```bash
 mvn -q test
 mvn -q -pl stage-01-ioc compile exec:java -Dexec.mainClass=com.example.stage01.manual.ManualWiringApp
+mvn -q -pl stage-02-di compile exec:java -Dexec.mainClass=com.example.stage02.DependencyInjectionApp
 ```
 
 ## Stages
@@ -43,7 +45,7 @@ mvn -q -pl stage-01-ioc compile exec:java -Dexec.mainClass=com.example.stage01.m
 | Stage | Topic | Status |
 | --- | --- | --- |
 | 1 | [IoC and your first context](stage-01-ioc/README.md) | Available |
-| 2 | Dependency injection | Planned |
+| 2 | [Dependency injection](stage-02-di/README.md) | Available |
 | 3 | Scopes | Planned |
 | 4 | Bean lifecycle | Planned |
 | 5 | Context features | Planned |
