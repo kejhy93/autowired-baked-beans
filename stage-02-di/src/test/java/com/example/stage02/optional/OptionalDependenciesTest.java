@@ -16,6 +16,7 @@ class OptionalDependenciesTest {
             OptionalDependencyDemo demo = context.getBean(OptionalDependencyDemo.class);
 
             assertTrue(demo.optionalPrinter().isEmpty());
+            assertTrue(demo.printers().isEmpty());
             assertNull(demo.nullablePrinter());
             assertNull(demo.setterPrinter());
             assertNull(demo.provider().getIfAvailable());
@@ -30,6 +31,7 @@ class OptionalDependenciesTest {
             OptionalDependencyDemo demo = context.getBean(OptionalDependencyDemo.class);
 
             assertEquals("paper receipt", demo.optionalPrinter().orElseThrow().print());
+            assertEquals(1, demo.printers().size());
             assertEquals("paper receipt", demo.nullablePrinter().print());
             assertEquals("paper receipt", demo.setterPrinter().print());
             assertEquals("paper receipt", demo.provider().getIfAvailable().print());
