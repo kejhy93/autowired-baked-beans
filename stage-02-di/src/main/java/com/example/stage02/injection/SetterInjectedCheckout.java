@@ -2,6 +2,7 @@ package com.example.stage02.injection;
 
 import com.example.stage02.payment.PaymentProcessor;
 
+/** Uses a setter to model a dependency that may be absent or reconfigured after construction. */
 public class SetterInjectedCheckout {
 
     private PaymentProcessor processor;

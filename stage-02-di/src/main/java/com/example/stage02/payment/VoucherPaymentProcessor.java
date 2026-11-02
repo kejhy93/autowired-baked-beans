@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Fallback;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+/** A last-resort candidate: Spring chooses it only when no regular processor is available. */
 @Component("voucherPaymentProcessor")
 @Fallback
 @Order(3)

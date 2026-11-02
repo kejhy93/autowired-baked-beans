@@ -7,6 +7,10 @@ import org.jspecify.annotations.Nullable;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Receives one optional printer as Optional, nullable, and optional setter dependencies, plus a deferred provider.
+ * The list and provider expose all matching printers rather than only one selected candidate.
+ */
 public class OptionalDependencyDemo {
 
     private final Optional<ReceiptPrinter> optionalPrinter;
@@ -15,6 +19,9 @@ public class OptionalDependencyDemo {
     private final ObjectProvider<ReceiptPrinter> provider;
     private ReceiptPrinter setterPrinter;
 
+    /**
+     * Captures the same optional dependency through several Spring-supported injection contracts.
+     */
     public OptionalDependencyDemo(Optional<ReceiptPrinter> optionalPrinter,
                                   List<ReceiptPrinter> printers,
                                   @Nullable ReceiptPrinter nullablePrinter,
@@ -25,6 +32,7 @@ public class OptionalDependencyDemo {
         this.provider = provider;
     }
 
+    /** Spring calls this setter only when a printer candidate is available. */
     @Autowired(required = false)
     public void setReceiptPrinter(ReceiptPrinter setterPrinter) {
         this.setterPrinter = setterPrinter;

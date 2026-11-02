@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Import;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/** Demonstrates that generic arguments distinguish two beans implementing the same repository interface. */
 class GenericRepositoryResolutionTest {
 
     @Test

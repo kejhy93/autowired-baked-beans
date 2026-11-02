@@ -7,6 +7,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+/** Contrasts required and non-required {@code @Autowired} list fields when the context has no matches. */
 class CollectionInjectionTest {
 
     @Test

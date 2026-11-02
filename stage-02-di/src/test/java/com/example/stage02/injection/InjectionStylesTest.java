@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/** Shows that constructor, setter, and field injection examples can be tested without a Spring context. */
 class InjectionStylesTest {
 
     @Test

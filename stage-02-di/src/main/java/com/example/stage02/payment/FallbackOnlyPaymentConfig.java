@@ -7,6 +7,9 @@ import org.springframework.context.annotation.Import;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Isolates the fallback bean so the example shows it being selected when no regular candidate exists.
+ */
 @Configuration(proxyBeanMethods = false)
 @Import(VoucherPaymentProcessor.class)
 public class FallbackOnlyPaymentConfig {

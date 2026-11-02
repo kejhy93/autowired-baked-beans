@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+/** Compares a required lookup with the optional, unique, and collection queries offered by {@code ObjectProvider}. */
 class PaymentLookupTest {
 
     @Test

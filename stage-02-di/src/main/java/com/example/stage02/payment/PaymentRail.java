@@ -12,7 +12,10 @@ import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-/** Selects a payment implementation by its business rail. */
+/**
+ * Qualifies a payment processor by business rail rather than by its implementation class.
+ * The {@link Qualifier} meta-annotation makes Spring use the value to narrow type-matched candidates.
+ */
 @Target({FIELD, METHOD, PARAMETER, TYPE})
 @Retention(RUNTIME)
 @Documented

@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/** Confirms that two primary candidates produce an ambiguity instead of being treated as ranked priorities. */
 class MultiplePrimaryTest {
 
     @Test

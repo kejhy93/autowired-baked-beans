@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/** Checks the empty and populated cases for optional dependency forms and collection injection. */
 class OptionalDependenciesTest {
 
     @Test

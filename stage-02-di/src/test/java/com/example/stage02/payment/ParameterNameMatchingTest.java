@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/** Exercises the same wiring with and without compiler-retained parameter names. */
 class ParameterNameMatchingTest {
 
     @Test

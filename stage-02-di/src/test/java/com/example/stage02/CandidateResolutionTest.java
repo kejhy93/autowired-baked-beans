@@ -10,6 +10,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
+/** Verifies single-candidate resolution, collection injection, and runtime routing. */
 class CandidateResolutionTest {
 
     @Test

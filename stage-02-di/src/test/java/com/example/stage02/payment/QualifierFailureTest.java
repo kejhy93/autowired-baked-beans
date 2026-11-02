@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Import;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+/** Checks that a qualifier with no matching type candidate fails during context refresh. */
 class QualifierFailureTest {
 
     @Test
