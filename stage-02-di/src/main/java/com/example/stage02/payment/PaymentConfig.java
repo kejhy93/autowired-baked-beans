@@ -21,17 +21,4 @@ public class PaymentConfig {
         return new PaymentRouter(defaultProcessor, bankTransferProcessor, bankRailProcessor,
                 allProcessors, processorsByBeanName);
     }
-
-    @Configuration(proxyBeanMethods = false)
-    @Import(VoucherPaymentProcessor.class)
-    public static class FallbackOnly {
-
-        @Bean
-        public PaymentRouter paymentRouter(PaymentProcessor defaultProcessor,
-                                           List<PaymentProcessor> allProcessors,
-                                           Map<String, PaymentProcessor> processorsByBeanName) {
-            return new PaymentRouter(defaultProcessor, defaultProcessor, defaultProcessor,
-                    allProcessors, processorsByBeanName);
-        }
-    }
 }

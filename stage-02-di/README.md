@@ -36,7 +36,7 @@ To run the whole repository build, use `mvn -B package`.
 
 The map keys are the bean names. `PaymentRouter.route(...)` uses that map to choose an implementation at runtime. `@Primary` and `@Fallback` affect single-bean resolution, not collection membership: all three implementations remain in the list and map. `@Order` sets the list order.
 
-`@Fallback` is not another default marker. It is considered only when no regular candidate is available. `PaymentConfig.FallbackOnly` imports just the voucher implementation to demonstrate that case. If two candidates are marked `@Primary`, Spring reports an ambiguity rather than choosing one; `MultiplePrimaryTest` captures the exception and its candidate names.
+`@Fallback` is not another default marker. It is considered only when no regular candidate is available. `FallbackOnlyPaymentConfig` imports just the voucher implementation to demonstrate that case. If two candidates are marked `@Primary`, Spring reports an ambiguity rather than choosing one; `MultiplePrimaryTest` captures the exception and its candidate names.
 
 ## Injection styles
 

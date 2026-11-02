@@ -1,6 +1,7 @@
 package com.example.stage02;
 
 import com.example.stage02.payment.CardPaymentProcessor;
+import com.example.stage02.payment.FallbackOnlyPaymentConfig;
 import com.example.stage02.payment.PaymentConfig;
 import com.example.stage02.payment.PaymentRouter;
 import org.junit.jupiter.api.Test;
@@ -55,7 +56,7 @@ class CandidateResolutionTest {
 
     @Test
     void fallbackIsUsedOnlyWhenNoRegularCandidateExists() {
-        try (var context = new AnnotationConfigApplicationContext(PaymentConfig.FallbackOnly.class)) {
+        try (var context = new AnnotationConfigApplicationContext(FallbackOnlyPaymentConfig.class)) {
             assertEquals("voucher", context.getBean(PaymentRouter.class).defaultProcessor().name());
         }
     }
