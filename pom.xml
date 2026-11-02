@@ -11,6 +11,7 @@
 
     <modules>
         <module>stage-01-ioc</module>
+        <module>stage-02-di</module>
     </modules>
 
     <properties>
